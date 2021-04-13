@@ -30,4 +30,4 @@ npm run server
 npm run build
 ```
 
-#### Work in progress, come check it out from time to time! :relaxed: :pencil2: :computer:
+#### Work in progress, come and check it out from time to time! :relaxed: :pencil2: :computer:
