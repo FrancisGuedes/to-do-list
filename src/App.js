@@ -6,41 +6,36 @@ import Tasks from './components/tasks'
 import AddTask from './components/addTask'
 import Footer from './components/footer'
 import About from './components/about'
+import { db } from './firebaseConfig'
 
 
 
 function App() {
+
+  const [tasks, setTasks] = useState([])
   const [showAddTask, setShowAddTask] =useState(false)
 
-  const[tasks, setTasks] = useState([])
-
   useEffect(() => {
-    const getTasks = async () => {
-      const tasksFromServer = await fetchTasks()
-      setTasks(tasksFromServer)
+    const getTasks = () => {
+      db.collection('todo').onSnapshot( function(querySnapshot) {
+        setTasks(
+          querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            task: doc.data().task,
+            date: doc.data().date,
+            
+          }))
+        )
+      } )
     }
 
     getTasks()
   }, [] )
 
-  // Fetch Tasks
-  const fetchTasks = async () => {
-    const res = await fetch('http://localhost:5000/tasks')
-    const data = await res.json()
-
-    return data
-  }
-
-  const fetchTask = async (id) => {
-    const res = await fetch(`http://localhost:5000/tasks/${id}`)
-    const data = await res.json()
-
-    return data
-  }
 
   // Add task
-  const addTask = async (task) => {
-    const res = await fetch('http://localhost:5000/tasks', {
+  const addTask = async () => {
+    /* const res = await fetch('http://localhost:5000/tasks', {
       method: 'POST',
       headers: {
         'Content-type': 'application/json'
@@ -50,7 +45,7 @@ function App() {
 
     const data = await res.json()
 
-    setTasks([...tasks, data])
+    setTasks([...tasks, data]) */
     
     // const id = Math.floor(Math.random() * 10000 ) + 1
     // const newTask = { id, ...task}
@@ -58,16 +53,23 @@ function App() {
   }
 
   // Delete Task
-  const deleteTask = async (id) => {
-    await fetch(`http://localhost:5000/tasks/${id}`, {
-      method: 'DELETE'
-    })
+  const deleteTask = (id) => {
+    db.collection('todo').doc(id).delete();
 
-    setTasks(tasks.filter((task) => task.id !== id ))
+    /* await fetch(`http://localhost:5000/tasks/${id}`, {
+      method: 'DELETE' 
+    })
+    setTasks(tasks.filter((task) => task.id !== id ))*/
   }
 
   // Toggle reminder
-  const toggleReminder = async (id) => {
+  const toggleReminder = (id, reminder) => {
+    db.collection('todo').doc(id).update({
+      reminder: !reminder
+    })
+    
+
+    /*
     const taskToToggle = await fetchTask(id)
     const updTask = {...taskToToggle, reminder: !taskToToggle.reminder}
 
@@ -83,7 +85,7 @@ function App() {
 
     setTasks(
       tasks.map((task) => task.id === id ? {...task, reminder: data.reminder } : task )
-    )
+    ) */
   }
 
   return (
@@ -94,18 +96,19 @@ function App() {
         onAdd={() => setShowAddTask(!showAddTask)}
         showAdd={showAddTask}
         />
-        <Route path='/' exact render={(props) => (
+        <Route path='/' exact render={() => (
           <>
             { showAddTask && <AddTask 
               onAdd={addTask}
             />}
-            { tasks.length > 0 ? <Tasks 
+            { tasks.length > 0 ? <Tasks
               tasks={tasks}
               onDelete={deleteTask} 
               onToggle={toggleReminder}
               /> : (
                 'You have no more Tasks'
               )}
+            
           </>
         ) } />
 

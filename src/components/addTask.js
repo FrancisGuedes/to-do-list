@@ -1,10 +1,12 @@
 import React, {useState} from 'react'
+import { db } from '../firebaseConfig'
+
 
 
 
 const AddTask = ({ onAdd }) => {
   const [text, setText]=useState('')
-  const [day, setDay]=useState('')
+  const [date, setDate]=useState('')
   const [reminder, setReminder]=useState(false)
 
   const onSubmit = (e) => {
@@ -15,14 +17,21 @@ const AddTask = ({ onAdd }) => {
       return 
     }
 
-    onAdd({ text, day, reminder })
+    onAdd({ text, date, reminder })
 
     setText('')
-    setDay('')
+    setDate('')
     setReminder(false)
+
+    db.collection('todo').add({
+      date: date,
+      reminder: false,
+      task: text
+    })
   }
 
   return (
+    <>
     <form className='add-form' onSubmit={onSubmit} >
       <div className="form-control">
         <label>Task</label>
@@ -34,12 +43,12 @@ const AddTask = ({ onAdd }) => {
         />
       </div>
       <div className="form-control">
-        <label>Day & Time</label>
+        <label>Date & Time</label>
         <input 
         type='text' 
-        placeholder="Add Day & Time"
-        value={day}
-        onChange={(e) => setDay(e.target.value)}
+        placeholder="dd/mm/yyyy & 00:00"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
         />
       </div>
       <div className="form-control form-control-check">
@@ -56,6 +65,7 @@ const AddTask = ({ onAdd }) => {
         type='submit' 
         value='Save Task'/>
     </form>
+    </>
   )
 }
 
